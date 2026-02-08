@@ -4,14 +4,14 @@ body {
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #574949;
             font-family: Arial, sans-serif;
         }
         .login-card {
             background-color: white;
-            border: 2px solid rgb(230, 6, 6);
+            border: 2px solid rgb(187, 228, 3);
             border-radius: 18px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.88);
             padding: 30px;
             width: 300px;
             text-align: center;
