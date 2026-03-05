@@ -1,20 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("loginForm");
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault(); // stop reload
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-    // read values
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    // error elements
     const emailError = document.getElementById("emailError");
     const passwordError = document.getElementById("passwordError");
+    const successMsg = document.getElementById("successMsg");
 
-    // reset errors
+    // Reset messages
     emailError.textContent = "";
     passwordError.textContent = "";
+    successMsg.textContent = "";
 
     let isValid = true;
 
@@ -36,29 +36,35 @@ document.addEventListener("DOMContentLoaded", function () {
       isValid = false;
     }
 
-    // FINAL CHECK
-    if (isValid) {
-      console.log("Form is valid ✅");
-      //   console.log("Email:", email);
-      //   console.log("Password:", password);
+    // Stop if invalid
+    if (!isValid) return;
 
-      const loginData = {
-        email: email,
-        password: password,
-      };
+    try {
+      const response = await fetch("http://localhost:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      console.log("Email:", loginData.email);
-      console.log("Password:", loginData.password);
+      const data = await response.json();
 
-      // redirect to dashboard after success msg
-      const successMsg = document.getElementById("successMsg");
-      successMsg.textContent = "Login successful! Redirecting...";
+      if (response.ok && data.success) {
+        successMsg.textContent = "Login successful! Redirecting...";
 
-      setTimeout(function () {
-        // setting user info in local storage so that we can use it in future
         localStorage.setItem("userEmail", email);
-        window.location.href = "dashboard.html";
-      }, 1500);
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1500);
+      } else {
+        passwordError.textContent = data.message || "Invalid credentials";
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      successMsg.textContent = "Server error. Please try again.";
     }
   });
 });
