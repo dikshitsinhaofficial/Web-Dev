@@ -1,39 +1,41 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 
 const app = express();
-const port = 8000;
+
+const PORT = 3000;
 
 app.use(express.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-    res.send("hii bro how are you");
+  res.send("hi Vib how are u?");
 });
 
 app.post("/login", (req, res) => {
-    const { email, password } = req.body;
+  const email = req.body.email;
+  const password = req.body.password;
 
-    // Correct validation
-    if (!email || !password) {
-        return res.status(400).json({
-            message: "Email and password are required",
-        });
-    }
-
-    if (email === "dikshitsinha186@gmail.com" && password === "@qwerty45678") {
-        return res.json({
-            success: true,
-            message: "Login successful",
-        });
-    }
-
-    return res.status(401).json({
-        success: false,
-        message: "Invalid email and password",
+  // basic validation
+  if (!email || !password) {
+    return res.status(400).json({
+      message: "Email and password are required",
     });
+  }
+
+  // fake authentication (for now)
+  if (email === "dikshitsinha186@gmail.com" && password === "Qwerty@123") {
+    return res.json({
+      success: true,
+      message: "Login successful",
+    });
+  }
+
+  return res.status(401).json({
+    message: "Invalid credentials",
+  });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
 });

@@ -1,46 +1,28 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
+  const currentPage = window.location.pathname;
+
+  
+
+  // Prevent logged-in user from accessing login page
+  if (currentPage.includes("login.html")) {
+    if (localStorage.getItem("isLoggedIn")) {
+      window.location.href = "dashboard.html";
+      return;
+    }
+  }
+
   const form = document.getElementById("loginForm");
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // stop page reload
 
-    const emailError = document.getElementById("emailError");
-    const passwordError = document.getElementById("passwordError");
-    const successMsg = document.getElementById("successMsg");
-
-    // Reset messages
-    emailError.textContent = "";
-    passwordError.textContent = "";
-    successMsg.textContent = "";
-
-    let isValid = true;
-
-    // EMAIL VALIDATION
-    if (email === "") {
-      emailError.textContent = "Email is required";
-      isValid = false;
-    } else if (!email.includes("@")) {
-      emailError.textContent = "Enter a valid email";
-      isValid = false;
-    }
-
-    // PASSWORD VALIDATION
-    if (password === "") {
-      passwordError.textContent = "Password is required";
-      isValid = false;
-    } else if (password.length < 6) {
-      passwordError.textContent = "Password must be at least 6 characters";
-      isValid = false;
-    }
-
-    // Stop if invalid
-    if (!isValid) return;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
     try {
-      const response = await fetch("http://localhost:8000/login", {
+      const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,21 +32,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        successMsg.textContent = "Login successful! Redirecting...";
-
+      if (data.success == true) {
+        // Save login state
+        localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userEmail", email);
+        alert("Login successful");
 
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1500);
-      } else {
-        passwordError.textContent = data.message || "Invalid credentials";
+        window.location.href = "dashboard.html";
       }
-
+      else {
+          alert("Invalid credentials");
+        }
     } catch (error) {
-      console.error("Error:", error);
-      successMsg.textContent = "Server error. Please try again.";
+      alert("Server error");
+      console.error(error);
     }
   });
 });
