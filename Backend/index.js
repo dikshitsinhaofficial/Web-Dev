@@ -1,55 +1,74 @@
-<<<<<<< HEAD
-const express = require('express');
-const cors = require('cors');
-
-const app=express();
-
-const PORT = 3000;
-
-app.listen(PORT, () => {
-    console.log("Server is running on port", PORT);   
-});
-middleware cors origin resource theory
-=======
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import morgan from "morgan";
+import cors from "cors";
+import path from "node:path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 const app = express();
 
-const PORT = 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+app.use(cors({
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
+app.use(morgan("dev"));
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.send("hello buddy are you okay?");
-});
+const filePath = path.join(__dirname, "users.json");
 
-app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+const readUsers = () => {
+    if (!fs.existsSync(filePath)) return [];
+    const data = fs.readFileSync(filePath, "utf-8");
+    return data ? JSON.parse(data) : [];
+};
 
-  // basic validation
-  if (!email || !password) {
-    return res.status(400).json({
-      message: "Email and password are required",
+const saveUser = (user) => {
+    const users = readUsers();
+    users.push(user);
+    fs.writeFileSync(filePath, JSON.stringify(users, null, 2), "utf-8");
+};
+
+app.post("/signup", (req, res) => {
+    const { email, pass, name } = req.body;
+
+    if (!name || !email || !pass) {
+        return res.status(400).json({
+            success: false,
+            message: "Please fill all fields"
+        });
+    }
+
+    const users = readUsers();
+
+    const exists = users.find(u => u.email === email);
+
+    if (exists) {
+        return res.status(400).json({
+            success: false,
+            message: "Email exists"
+        });
+    }
+
+    const user = {
+        name,
+        email,
+        pass
+    };
+
+    saveUser(user);
+
+    console.log("User registered:", user);
+
+    res.status(200).json({
+        success: true,
+        message: "User registered"
     });
-  }
-
-  // fake authentication (for now)
-  if (email === "dikshitsinha186@gmail.com" && password === "Qwerty@123") {
-    return res.json({
-      success: true,
-      message: "Login successful",
-    });
-  }
-
-  return res.status(401).json({
-    message: "Invalid credentials",
-  });
 });
 
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+app.listen(8080, () => {
+    console.log("server is Live on port: 8080");
 });
->>>>>>> 0db8745932b16b3203357b0d967db401b5a1cc74
