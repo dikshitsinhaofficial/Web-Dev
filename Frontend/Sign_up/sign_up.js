@@ -1,54 +1,71 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const currentPage = window.location.pathname;
+    const form = document.querySelector(".formcont");
+    const name = document.querySelector(".name");
+    const email = document.querySelector(".email");
+    const pass = document.querySelector(".pass");
+    const tmc = document.querySelector("#tmc");
+    const toast = document.querySelector("#rj-tost");
 
-  
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-  // Prevent logged-in user from accessing login page
-  if (currentPage.includes("form.html")) {
-    if (localStorage.getItem("isLoggedIn")) {
-      window.location.href = "intro.html";
-      return;
-    }
-  }
-
-  const form = document.getElementById("sign_up");
-
-  
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // stop page reload
-
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const phone=document.getElementById("phone").value;
-
-    try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-
-      const data = await response.json();
-
-      if (data.success == true) {
-        // Save login state
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userEmail", email);
-        alert("Login successful");
-
-        window.location.href = "";
-      }
-      else {
-          alert("Invalid credentials");
+        if (!tmc.checked) {
+            useToast(1, "Please accept Terms & Conditions");
+            return;
         }
-    } catch (error) {
-      alert("Server error");
-      console.error(error);
-    }
-  });
-});
 
+        const user = {
+            name: name.value.trim(),
+            email: email.value.trim(),
+            pass: pass.value.trim()
+        };
+
+        try {
+            useToast(2, "Creating account...");
+
+            const res = await fetch("http://localhost:8080/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(user)
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem("raj:auth", "true");
+                useToast(0, data.message || "Signup successful");
+
+                setTimeout(() => {
+                    window.location.href = "/frontend/index.html";
+                }, 1200);
+            } else {
+                useToast(1, data.message || "Signup failed");
+            }
+
+        } catch (err) {
+            useToast(1, "Server error. Try again later.");
+            console.error(err);
+        }
+    });
+
+    const useToast = (mode, message) => {
+        toast.innerHTML = `<p>${message}</p>`;
+
+        // 0 = success, 1 = error, 2 = loading
+        if (mode === 0) toast.style.background = "#2f5d2f";
+        if (mode === 1) toast.style.background = "#c0392b";
+        if (mode === 2) toast.style.background = "#555";
+
+        toast.classList.remove("close");
+        toast.classList.add("show");
+
+        if (mode !== 2) {
+            setTimeout(() => {
+                toast.classList.remove("show");
+                toast.classList.add("close");
+            }, 3000);
+        }
+    };
+});
