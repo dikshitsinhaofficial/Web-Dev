@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+
     const form = document.querySelector(".formcont");
     const name = document.querySelector(".name");
     const email = document.querySelector(".email");
@@ -9,9 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        // 🔴 VALIDATION
+        if (!name.value.trim() || !email.value.trim() || !pass.value.trim()) {
+            return useToast(1, "All fields are required");
+        }
+
         if (!tmc.checked) {
-            useToast(1, "Please accept Terms & Conditions");
-            return;
+            return useToast(1, "Please accept Terms & Conditions");
         }
 
         const user = {
@@ -31,34 +36,46 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(user)
             });
 
-            const data = await res.json();
-
-            if (data.success) {
-                localStorage.setItem("raj:auth", "true");
-                useToast(0, data.message || "Signup successful");
-
-                setTimeout(() => {
-                    window.location.href = "/frontend/index.html";
-                }, 1200);
-            } else {
-                useToast(1, data.message || "Signup failed");
+            // 🔴 HANDLE BAD RESPONSE
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Signup failed");
             }
 
+            const data = await res.json();
+
+            // ✅ SUCCESS
+            localStorage.setItem("raj:auth", "true");
+            useToast(0, data.message || "Signup successful");
+
+            // ✅ CLEAR FORM (FIXED)
+            form.reset();
+
+            // ✅ REDIRECT
+            setTimeout(() => {
+                window.location.href = "/frontend/index.html";
+            }, 1200);
+
         } catch (err) {
-            useToast(1, "Server error. Try again later.");
             console.error(err);
+            useToast(1, err.message || "Server error");
+
+            // ❗ OPTIONAL: clear even on error
+            // form.reset();
         }
     });
 
     const useToast = (mode, message) => {
         toast.innerHTML = `<p>${message}</p>`;
 
+        // reset classes
+        toast.className = "";
+
         // 0 = success, 1 = error, 2 = loading
         if (mode === 0) toast.style.background = "#2f5d2f";
         if (mode === 1) toast.style.background = "#c0392b";
         if (mode === 2) toast.style.background = "#555";
 
-        toast.classList.remove("close");
         toast.classList.add("show");
 
         if (mode !== 2) {
@@ -68,4 +85,5 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 3000);
         }
     };
+
 });
